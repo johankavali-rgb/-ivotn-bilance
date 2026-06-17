@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Životní bilance</title>
+<style>
+:root{
+  --bg:#07201A;--bg2:#0C2D22;--bg3:#112E24;--card:#0A2820;
+  --gold:#D4A843;--gold2:#F0C660;--gold3:rgba(212,168,67,.12);
+  --text:#F0EBE0;--text2:#8FA89A;--text3:#5A7A6A;
+  --green:#3DB868;--green2:rgba(61,184,104,.15);
+  --red:#E05252;--red2:rgba(224,82,82,.15);
+  --blue:#5B9BD5;--blue2:rgba(91,155,213,.15);
+  --amber:#E8A020;--amber2:rgba(232,160,32,.15);
+  --border:rgba(212,168,67,.18);--radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;min-height:100vh;padding-bottom:60px}
+
+/* HEADER */
+.hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;position:sticky;top:0;z-index:100}
+.hdr-row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.hdr-tag{font-size:11px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.hdr-team{font-size:12px;color:var(--text2)}
+.caps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cap{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+.cap-l{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.cap-v{font-size:13px;font-weight:700}
+.cv-g{color:var(--green)}.cv-gold{color:var(--gold)}.cv-b{color:var(--blue)}.cv-r{color:var(--red)}
+
+/* PROGRESS */
+.prog{display:flex;gap:3px;padding:8px 16px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.ps{flex:1;height:3px;border-radius:2px;background:var(--bg3);transition:background .3s}
+.ps.done{background:var(--gold)}.ps.act{background:var(--gold2)}
+
+/* SCREENS */
+.scr{display:none;padding:16px;max-width:540px;margin:0 auto}
+.scr.on{display:block;animation:fu .25s ease}
+@keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* INTRO */
+.intro-hero{text-align:center;padding:40px 0 24px}
+.intro-hero h1{font-size:30px;font-weight:800;color:var(--gold);margin-bottom:8px}
+.intro-hero p{color:var(--text2);line-height:1.7;font-size:14px}
+.team-inp label{display:block;font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.team-inp input{width:100%;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:16px;outline:none}
+.team-inp input:focus{border-color:var(--gold)}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.card-t{font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:10px}
+
+/* PHASE HEADER */
+.ph{margin-bottom:14px}
+.ph-num{font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.ph-title{font-size:22px;font-weight:800}
+.ph-sub{font-size:12px;color:var(--text2);margin-top:3px}
+
+/* SITUATION */
+.sit{background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.7;color:var(--text2)}
+.sit strong{color:var(--text)}
+.sit .age{display:inline-block;background:var(--gold);color:var(--bg);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-bottom:6px}
+
+/* FIXED EXPENSES */
+.fixed-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
+.fx{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 10px}
+.fx-l{font-size:10px;color:var(--text2);margin-bottom:2px}
+.fx-v{font-size:13px;font-weight:700}
+.fx-v.out{color:var(--red)}.fx-v.inc{color:var(--green)}
+.budget-summary{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.bs-label{font-size:12px;color:var(--text2)}
+.bs-val{font-size:18px;font-weight:800;color:var(--green)}
+.bs-val.warn{color:var(--amber)}.bs-val.danger{color:var(--red)}
+
+/* ALLOC SLIDERS */
+.alloc-title{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.alloc-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.alloc-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0}
+.alloc-info{flex:1;min-width:0}
+.alloc-name{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.alloc-desc{font-size:11px;color:var(--text2);margin-top:1px}
+.alloc-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:80px}
+.alloc-kc{font-size:14px;font-weight:700;color:var(--gold);white-space:nowrap}
+.alloc-pct{font-size:11px;color:var(--text2)}
+input[type=range]{width:100%;accent-color:var(--gold);height:3px;cursor:pointer;margin-top:4px}
+.remain-bar{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-top:4px;margin-bottom:14px}
+.rb-label{font-size:12px;color:var(--text2)}
+.rb-val{font-size:15px;font-weight:700}
+.rb-ok{color:var(--green)}.rb-warn{color:var(--amber)}.rb-over{color:var(--red)}
+
+/* DECISIONS (one-pick) */
+.dec-group{margin-bottom:14px}
+.dec-t{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.dec-opt{background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .18s;position:relative}
+.dec-opt:active{transform:scale(.99)}
+.dec-opt.sel{border-color:var(--gold);background:var(--gold3)}
+.dec-opt.sel::after{content:'✓';position:absolute;top:12px;right:12px;color:var(--gold);font-weight:800;font-size:15px}
+.dec-opt.ambi{border-color:var(--border)}
+.opt-t{font-weight:600;font-size:14px;margin-bottom:3px}
+.opt-d{font-size:12px;color:var(--text2);line-height:1.5}
+.opt-i{font-size:12px;font-weight:600;margin-top:5px}
+.oi-g{color:var(--green)}.oi-r{color:var(--red)}.oi-b{color:var(--blue)}.oi-a{color:var(--amber)}
+
+/* EVENT */
+.evt{border-radius:var(--radius);padding:14px;margin-bottom:14px}
+.evt.bad{background:#1A0808;border:1.5px solid var(--red)}
+.evt.good{background:#081A10;border:1.5px solid var(--green)}
+.evt.neu{background:#080E1A;border:1.5px solid var(--blue)}
+.evt.warn{background:#1A1208;border:1.5px solid var(--amber)}
+.evt-icon{font-size:30px;margin-bottom:8px}
+.evt-title{font-size:16px;font-weight:700;margin-bottom:6px}
+.evt-desc{font-size:13px;color:var(--text2);line-height:1.6}
+.evt-impact{font-size:13px;font-weight:600;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}
+
+/* TERM BADGE */
+.tb{display:inline-block;background:var(--blue2);border:1px solid rgba(91,155,213,.4);color:var(--blue);font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;vertical-align:middle;margin-left:4px}
+
+/* INFO/WARN BOXES */
+.ibox{background:var(--blue2);border:1px solid rgba(91,155,213,.4);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#a0c8f0;line-height:1.6}
+.wbox{background:var(--red2);border:1px solid rgba(224,82,82,.4);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#f0a0a0;line-height:1.6}
+.abox{background:var(--amber2);border:1px solid rgba(232,160,32,.4);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#f0c880;line-height:1.6}
+
+/* BTN */
+.btn{width:100%;padding:15px;border:none;border-radius:var(--radius);font-size:16px;font-weight:700;cursor:pointer;transition:all .18s;letter-spacing:.2px;margin-top:8px}
+.btn-p{background:var(--gold);color:var(--bg)}.btn-p:hover{background:var(--gold2)}
+.btn-p:disabled{background:var(--bg3);color:var(--text2);cursor:not-allowed}
+.btn-s{background:transparent;color:var(--gold);border:1.5px solid var(--gold)}
+
+/* RESULT */
+.res-hero{text-align:center;padding:24px 0 16px}
+.res-score{font-size:44px;font-weight:800;color:var(--gold);line-height:1.1;margin:8px 0 4px}
+.res-sub{font-size:12px;color:var(--text2)}
+.br-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.br-row:last-child{border:none}
+.br-l{color:var(--text2)}.br-v{font-weight:700}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
+.modal-ov.on{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:22px;max-width:420px;width:100%;max-height:82vh;overflow-y:auto}
+.modal h3{color:var(--gold);font-size:16px;margin-bottom:8px}
+.modal p{color:var(--text2);font-size:13px;line-height:1.7}
+.modal .ex{background:var(--bg3);border-radius:8px;padding:10px;margin-top:10px;font-size:12px;line-height:1.7}
+.modal .ex strong{color:var(--gold2)}
+.modal-close{width:100%;margin-top:14px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;cursor:pointer}
+
+.mt12{margin-top:12px}.mb8{margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<!-- GLOSSARY MODAL -->
+<div class="modal-ov" id="gmodal">
+<div class="modal">
+  <h3 id="gt"></h3><p id="gd"></p><div class="ex" id="ge"></div>
+  <button class="modal-close" onclick="closeG()">Zavřít</button>
+</div>
+</div>
+
+<!-- HEADER -->
+<div class="hdr" id="mainHdr" style="display:none">
+  <div class="hdr-row1">
+    <span class="hdr-tag">⚖️ Životní bilance</span>
+    <span class="hdr-team" id="hdrTeam"></span>
+  </div>
+  <div class="caps">
+    <div class="cap"><div class="cap-l">Příjem</div><div class="cap-v cv-g" id="hIncome">0</div></div>
+    <div class="cap"><div class="cap-l">Rezerva</div><div class="cap-v cv-g" id="hRez">0</div></div>
+    <div class="cap"><div class="cap-l">Portfolio</div><div class="cap-v cv-gold" id="hPort">0</div></div>
+    <div class="cap"><div class="cap-l">Čistý maj.</div><div class="cap-v cv-b" id="hNet">0</div></div>
+  </div>
+</div>
+<div class="prog" id="mainProg" style="display:none" id="progBar"></div>
+
+<!-- ═══════ SCREEN: INTRO ═══════ -->
+<div class="scr on" id="s-intro">
+  <div class="intro-hero">
+    <div style="font-size:52px;margin-bottom:12px">💰</div>
+    <h1>Životní bilance</h1>
+    <p>Prožij finanční život Tomáše od 25 do 65 let.<br>15 životních fází, reálná rozhodnutí, žádná jednoznačná odpověď.<br><br>Vyhrává ten, kdo v 65 letech nashromáždí největší <strong style="color:var(--gold)">čistý kapitál</strong> — ale pozor, záleží i na tom, jak cestou žil.</p>
+  </div>
+  <div class="card mb8" style="margin-top:4px">
+    <div class="card-t">Jak hra funguje</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.9">
+      📊 Každá fáze ti ukáže fixní výdaje — co už platíš<br>
+      🎛️ Ty rozhoduješ, jak naložíš se zbytkem — slidery<br>
+      ⚡ Občas přijde nečekaná událost — nemoc, krize, příležitost<br>
+      📚 Modré pojmy = klikni pro vysvětlení<br>
+      🏆 Konec: čistý kapitál + životní spokojenost
+    </div>
+  </div>
+  <div class="team-inp" style="margin:16px 0">
+    <label>Název vašeho týmu</label>
+    <input type="text" id="teamIn" placeholder="např. Tým Alfa..." maxlength="20">
+  </div>
+  <button class="btn btn-p" onclick="startGame()">Začít hru →</button>
+</div>
+
+<!-- ═══════ SCREEN: PHASE ═══════ -->
+<div class="scr" id="s-phase">
+  <div class="ph">
+    <div class="ph-num" id="phNum"></div>
+    <div class="ph-title" id="phTitle"></div>
+    <div class="ph-sub" id="phSub"></div>
+  </div>
+
+  <!-- Situation -->
+  <div class="sit" id="phSit"></div>
+
+  <!-- Event (shown when present) -->
+  <div id="phEvent" style="display:none"></div>
+
+  <!-- Fixed expenses -->
+  <div class="card">
+    <div class="card-t">📋 Co už platíš — fixní výdaje</div>
+    <div class="fixed-grid" id="fixedGrid"></div>
+    <div class="budget-summary">
+      <div><div class="bs-label">Měsíční příjem</div><div style="font-size:13px;font-weight:700;color:var(--green)" id="bsIncome"></div></div>
+      <div style="text-align:right"><div class="bs-label">Zbývá k rozdělení</div><div class="bs-val" id="bsFree"></div></div>
+    </div>
+  </div>
+
+  <!-- Key decision (phase-specific) -->
+  <div id="phDecisions"></div>
+
+  <!-- Allocation sliders -->
+  <div class="card">
+    <div class="card-t">🎛️ Jak naložíš se zbytkem?</div>
+    <div class="alloc-title">Rozděl volné prostředky (měsíčně)</div>
+
+    <div class="alloc-row">
+      <div class="alloc-icon">🛡️</div>
+      <div class="alloc-info">
+        <div class="alloc-name">Rezervní fond<span class="tb" onclick="showG('rezerva')">pojem</span></div>
+        <div class="alloc-desc">Hotovost na neočekávané výdaje — cíl: 6 měs. výdajů</div>
+        <input type="range" id="sl-rez" min="0" max="100" value="0" oninput="updateAlloc()">
+      </div>
+      <div class="alloc-right"><div class="alloc-kc" id="al-rez">0 Kč</div><div class="alloc-pct" id="ap-rez">0 %</div></div>
+    </div>
+
+    <div class="alloc-row">
+      <div class="alloc-icon">📈</div>
+      <div class="alloc-info">
+        <div class="alloc-name">ETF — akcie<span class="tb" onclick="showG('etf')">pojem</span></div>
+        <div class="alloc-desc">Světový index, ~7 % p.a. historicky. Dlouhé horizont.</div>
+        <input type="range" id="sl-etf" min="0" max="100" value="0" oninput="updateAlloc()">
+      </div>
+      <div class="alloc-right"><div class="alloc-kc" id="al-etf">0 Kč</div><div class="alloc-pct" id="ap-etf">0 %</div></div>
+    </div>
+
+    <div class="alloc-row">
+      <div class="alloc-icon">🏦</div>
+      <div class="alloc-info">
+        <div class="alloc-name">DIP — důch. spoření<span class="tb" onclick="showG('dip')">pojem</span></div>
+        <div class="alloc-desc">Daňová úspora, výběr až v 60. ~4,5 % p.a.</div>
+        <input type="range" id="sl-dip" min="0" max="100" value="0" oninput="updateAlloc()">
+      </div>
+      <div class="alloc-right"><div class="alloc-kc" id="al-dip">0 Kč</div><div class="alloc-pct" id="ap-dip">0 %</div></div>
+    </div>
+
+    <div class="alloc-row" id="row-dluh">
+      <div class="alloc-icon">📜</div>
+      <div class="alloc-info">
+        <div class="alloc-name">Dluhopisy<span class="tb" onclick="showG('dluhopisy')">pojem</span></div>
+        <div class="alloc-desc">Státní, ~4 % p.a. Konzervativní stabilita.</div>
+        <input type="range" id="sl-dluh" min="0" max="100" value="0" oninput="updateAlloc()">
+      </div>
+      <div class="alloc-right"><div class="alloc-kc" id="al-dluh">0 Kč</div><div class="alloc-pct" id="ap-dluh">0 %</div></div>
+    </div>
+
+    <div class="alloc-row" id="row-hyp" style="display:none">
+      <div class="alloc-icon">🏠</div>
+      <div class="alloc-info">
+        <div class="alloc-name">Mimořádná splátka hyp.<span class="tb" onclick="showG('protiproud')">pojem</span></div>
+        <div class="alloc-desc">Snižuje dluh, šetří úroky. Nebo investuj — co se víc vyplatí?</div>
+        <input type="range" id="sl-hyp" min="0" max="100" value="0" oninput="updateAlloc()">
+      </div>
+      <div class="alloc-right"><div class="alloc-kc" id="al-hyp">0 Kč</div><div class="alloc-pct" id="ap-hyp">0 %</div></div>
+    </div>
+
+    <div class="alloc-row">
+      <div class="alloc-icon">☀️</div>
+      <div class="alloc-info">
+        <div class="alloc-name">Životní radosti</div>
+        <div class="alloc-desc">Dovolená, restaurace, koníčky, dárky. Přidá body spokojenosti.</div>
+        <input type="range" id="sl-joy" min="0" max="100" value="0" oninput="updateAlloc()">
+      </div>
+      <div class="alloc-right"><div class="alloc-kc" id="al-joy">0 Kč</div><div class="alloc-pct" id="ap-joy">0 %</div></div>
+    </div>
+
+    <div class="remain-bar">
+      <span class="rb-label">Ještě k rozdělení</span>
+      <span id="rb-remain" class="rb-val rb-ok">0 Kč</span>
+    </div>
+    <div id="alloc-hint" class="ibox" style="display:none"></div>
+  </div>
+
+  <button class="btn btn-p" id="phBtn" onclick="confirmPhase()">Potvrdit a pokračovat →</button>
+</div>
+
+<!-- ═══════ SCREEN: RESULT ═══════ -->
+<div class="scr" id="s-result">
+  <div class="res-hero">
+    <div style="font-size:44px;margin-bottom:6px">🏆</div>
+    <div style="font-size:12px;color:var(--text2)">Čistý kapitál v 65 letech</div>
+    <div class="res-score" id="rScore"></div>
+    <div class="res-sub" id="rLabel"></div>
+  </div>
+  <div class="card">
+    <div class="card-t">Rozpad majetku</div>
+    <div id="rBreakdown"></div>
+  </div>
+  <div class="card mt12">
+    <div class="card-t">Životní spokojenost</div>
+    <div style="text-align:center;padding:8px 0">
+      <div style="font-size:32px;font-weight:800;color:var(--amber)" id="rJoy"></div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px">Celkem utraceno za radosti</div>
+    </div>
+    <div class="abox" id="rJoyComment"></div>
+  </div>
+  <div class="card mt12">
+    <div class="card-t">Klíčová rozhodnutí</div>
+    <div id="rDecisions" style="font-size:13px;color:var(--text2);line-height:2.1"></div>
+  </div>
+  <div class="ibox mt12" id="rInsight"></div>
+  <div style="margin-top:20px;text-align:center;font-size:12px;color:var(--text2);margin-bottom:14px">Zapište výsledek pro srovnání s ostatními týmy 📋</div>
+  <button class="btn btn-s" onclick="resetGame()">Hrát znovu</button>
+</div>
+
+<script>
+// ── GLOSSARY ──────────────────────────────────────────────
+const G={
+  etf:{title:'ETF — Exchange Traded Fund',def:'Fond obchodovaný na burze, který kopíruje index (např. S&P 500 = 500 největších amerických firem). Místo jedné akcie koupíte podíl ve stovkách firem najednou. Nízké poplatky (~0,2 % ročně).',ex:'<strong>Příklad:</strong> Investuješ 5 000 Kč/měs. do světového ETF. Za 30 let při 7 % p.a. = přes 5,8 mil. Kč. Z toho ty vložíš 1,8 mil. — zbytek je složený úrok.'},
+  dip:{title:'DIP — Dlouhodobý investiční produkt',def:'Státem podporované důchodové spoření od 2024. Vklady si odečteš z daňového základu — max. 48 000 Kč/rok = úspora až 7 200 Kč/rok. Výběr nejdříve v 60 letech.',ex:'<strong>Příklad:</strong> Vkládáš 4 000 Kč/měs. do DIP. Reálný náklad po daňové úspoře: ~3 400 Kč. Za 30 let při 5 % = 3,2 mil. Kč, z toho ~700 tis. Kč jsou jen daňové úspory.'},
+  dluhopisy:{title:'Dluhopisy',def:'Půjčuješ peníze státu nebo firmě na pevnou dobu za pevný úrok. Bezpečnější než akcie, nižší výnos. Hodí se jako konzervativní složka — zejména blíže důchodu.',ex:'<strong>Příklad:</strong> Státní dluhopis ČR: 100 000 Kč na 6 let, ~4 % p.a. = každý rok dostaneš 4 000 Kč, na konci vrátí 100 000 Kč. Garantuje stát.'},
+  hypoteka:{title:'Hypotéka',def:'Půjčka od banky zajištěná nemovitostí. Banka ti půjčí peníze na koupi bytu, ty jí ho zastavíš — přestaneš-li splácet, banka byt prodá.',ex:'<strong>Příklad:</strong> Byt 4 mil. Kč, vlastní prostředky 800 tis. (20 %), hypotéka 3,2 mil. na 30 let při 5,5 % → splátka ~18 200 Kč/měs. Celkem zaplatíš ~6,5 mil. Kč.'},
+  protiproud:{title:'Hypoteční protiproud',def:'Strategie: místo předčasného splacení hypotéky investuješ přebytek tam, kde výnos > úrok hypotéky. Pokud hypotéka stojí 4,5 % a ETF dává 7 %, matematicky se nevyplatí spácet předčasně.',ex:'<strong>Příklad:</strong> Zbývá ti 900 000 Kč hypotéky (úrok 4,5 %). Máš 900 000 Kč úspor. Variantou A splatíš → ušetříš ~120 tis. na úrocích. Variantou B investuješ → za 9 let při 7 % = ~1 650 000 Kč. Rozdíl: +630 tis. ALE: investice není jistá, splacení ano.'},
+  rezerva:{title:'Finanční rezerva',def:'Hotovost dostupná okamžitě — bez prodeje investic. Cíl: pokrýt 3–6 měsíčních výdajů. Chraní tě před nutností prodávat investice ve špatný čas.',ex:'<strong>Proč to funguje:</strong> Bez rezervy — při nemoci nebo ztrátě práce musíš prodat ETF klidně za −30 %. S rezervou — přežiješ krizi bez prodeje a portfolio se zotaví.'},
+  amhypoteka:{title:'Americká hypotéka',def:'Půjčka zajištěná nemovitostí, kterou VLASTNÍŠ — bez udání účelu. Banka ti půjčí až 70–80 % hodnoty zástavy za nižší úrok než spotřebitelský úvěr.',ex:'<strong>Příklad:</strong> Tvůj byt má hodnotu 5 mil. Kč, hypotéka splacena. Přes americkou hypotéku dostaneš až 3,5 mil. Kč na libovolný účel — třeba na investiční byt.'},
+  rpsn:{title:'RPSN — Roční procentní sazba nákladů',def:'Skutečná cena půjčky v procentech za rok — zahrnuje úrok, poplatky, pojistky a všechno ostatní. Vždy srovnávej RPSN, ne jen úrok.',ex:'<strong>Příklad:</strong> Půjčka: úrok 8 %, ale poplatky + pojistka → RPSN 14,5 %. Konkurenční půjčka: úrok 10 %, bez poplatků → RPSN 10,2 %. Druhá je levnější, přestože má vyšší úrok.'}
+};
+function showG(k){const g=G[k];if(!g)return;document.getElementById('gt').textContent=g.title;document.getElementById('gd').textContent=g.def;document.getElementById('ge').innerHTML=g.ex;document.getElementById('gmodal').classList.add('on')}
+function closeG(){document.getElementById('gmodal').classList.remove('on')}
+
+// Cap pro příjem Tomáše
+const CAP_INCOME=120000;
+const setIncome=v=>{ S.income=Math.min(CAP_INCOME,Math.max(0,v)); };
+
+// ── STATE ─────────────────────────────────────────────────
+let S={
+  team:'',phase:0,
+  income:0,fixedOut:0,freeMonthly:0,
+  capital:{rezerva:0,etf:0,dip:0,dluhopisy:0,nemovitosti:0,hypDluh:0,otherDluh:0},
+  joy:0,           // celkové radosti Kč
+  decisions:{},    // klíčová rozhodnutí per fáze
+  flags:{          // binární stav světa
+    hasHyp:false,hypRate:0.055,hypBalance:0,hypYears:0,
+    hasInvByt:false,invBytNajem:0,invBytDluh:0,
+    hasPojisteni:false,hasAuto:false,
+    partnerIncome:0,hasKids:false,kidsAge:0,
+    jobLoss:false,healthEvent:false,crisisHappened:false,
+    studentDluh:120000
+  },
+  phaseResults:[]  // history for final screen
+};
+
+// ── HELPERS ───────────────────────────────────────────────
+const fmt=n=>Math.round(Math.abs(n)).toLocaleString('cs')+' Kč';
+const fmtM=n=>{const m=Math.round(n/1000);return(m>=1000?(m/1000).toFixed(1)+' mil.':(m>=100?m+' tis.':m+'k'))+' Kč'};
+function grow(principal,rateAnnual,years){return principal*Math.pow(1+rateAnnual,years)}
+function growMonthly(monthlyAmt,rateAnnual,years){
+  const r=rateAnnual/12,n=years*12;
+  if(r===0)return monthlyAmt*n;
+  return monthlyAmt*(Math.pow(1+r,n)-1)/r;
+}
+
+function updateHeader(){
+  document.getElementById('hIncome').textContent=fmtM(S.income);
+  document.getElementById('hRez').textContent=fmtM(S.capital.rezerva);
+  document.getElementById('hPort').textContent=fmtM(S.capital.etf+S.capital.dip+S.capital.dluhopisy);
+  const net=S.capital.rezerva+S.capital.etf+S.capital.dip+S.capital.dluhopisy+S.capital.nemovitosti-S.capital.hypDluh-S.capital.otherDluh-S.flags.studentDluh;
+  document.getElementById('hNet').textContent=fmtM(Math.max(0,net));
+}
+
+function updateProg(){
+  const bar=document.getElementById('mainProg');
+  bar.innerHTML='';
+  for(let i=0;i<15;i++){
+    const d=document.createElement('div');
+    d.className='ps'+(i<S.phase?' done':i===S.phase?' act':'');
+    bar.appendChild(d);
+  }
+}
+
+function showScr(id){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+id).classList.add('on');
+  window.scrollTo(0,0);
+}
+
+// ── ALLOC SLIDERS ─────────────────────────────────────────
+function updateAlloc(){
+  const free=S.freeMonthly;
+  const ids=['rez','etf','dip','dluh','hyp','joy'];
+  let total=0;
+  const vals={};
+  ids.forEach(id=>{
+    const el=document.getElementById('sl-'+id);
+    if(!el||el.closest('[style*="display:none"]'))return;
+    const pct=parseInt(el.value)||0;
+    total+=pct;
+    vals[id]=pct;
+  });
+
+  // Scale down if over 100
+  ids.forEach(id=>{
+    const el=document.getElementById('sl-'+id);
+    if(!el)return;
+    const pct=vals[id]||0;
+    const kc=Math.round(free*(pct/100));
+    const kalEl=document.getElementById('al-'+id);
+    const apEl=document.getElementById('ap-'+id);
+    if(kalEl)kalEl.textContent=fmt(kc);
+    if(apEl)apEl.textContent=pct+' %';
+  });
+
+  const used=total;
+  const remainPct=100-used;
+  const remainKc=Math.round(free*remainPct/100);
+  const rb=document.getElementById('rb-remain');
+  rb.textContent=fmt(Math.max(0,remainKc));
+  rb.className='rb-val '+(remainPct<0?'rb-over':remainPct===0?'rb-ok':'rb-warn');
+
+  // Hints — nepřepisuj zprávu o převzatém rozložení pokud je vše ok
+  const hint=document.getElementById('alloc-hint');
+  const hintIsCarryover=hint.innerHTML&&hint.innerHTML.includes('Rozložení převzato');
+  if(remainPct<0){hint.style.display='block';hint.className='wbox';hint.textContent='⚠️ Překračuješ dostupné prostředky! Sniž některé položky.'}
+  else if((vals['joy']||0)>40){hint.style.display='block';hint.className='abox';hint.textContent='☀️ Víc než 40 % jde na radosti — skvělý životní styl, ale kapitál poroste pomaleji.'}
+  else if((vals['rez']||0)===0&&S.capital.rezerva<S.fixedOut*3){hint.style.display='block';hint.className='wbox';hint.textContent='🛡️ Nemáš rezervu! Bez polštáře tě může jedna nečekaná událost srazit na kolena.'}
+  else if(!hintIsCarryover){hint.style.display='none'}
+}
+
+function getAllocValues(){
+  const ids=['rez','etf','dip','dluh','hyp','joy'];
+  const out={};
+  let total=0;
+  ids.forEach(id=>{
+    const el=document.getElementById('sl-'+id);
+    if(!el)return;
+    const pct=parseInt(el.value)||0;
+    total+=pct;
+    out[id]=pct;
+  });
+  out.remainPct=100-total;
+  return out;
+}
+
+// ── PHASES DATA ───────────────────────────────────────────
+const PHASES=[
+  // ── 1 ──
+  {age:25,title:'Rozjezd',sub:'První výplata, první rozhodnutí',
+   sit:'Tomáš právě nastoupil jako junior analytik. <strong>Čistý příjem 38 000 Kč/měs.</strong> Bydlí zatím provizorně u přítele. Má studentskou půjčku 120 000 Kč (RPSN 7,9 % <span class="tb" onclick="showG(\'rpsn\')">pojem</span>). Teď nastavuje finanční život od základů.',
+   getFixed:()=>[
+     {l:'Příjem',v:38000,type:'inc'},
+     {l:'Jídlo + domácnost',v:-9000,type:'out'},
+     {l:'Doprava (MHD)',v:-2500,type:'out'},
+     {l:'Telefon + internet',v:-800,type:'out'},
+     {l:'Studentská půjčka',v:-2800,type:'out'}
+   ],
+   decisions:[{
+     key:'bydleni',title:'Kde bude bydlet?',
+     opts:[
+       {val:'najem',t:'🏠 Nájem bytu — 15 000 Kč/měs.',d:'Flexibilita, ale peníze „vyhoří". Tomáš může volně investovat zbytek.',i:'oi-r',impact:'− 15 000 Kč/měs.',fixedImpact:-15000},
+       {val:'hypoteka',t:'🏗️ Hypotéka — byt 3,8 mil. Kč <span class="tb" onclick="event.stopPropagation();showG(\'hypoteka\')">pojem</span>',d:'Splátka 20 500 Kč/měs. (30 let, 5,5 %). Buduje vlastní majetek. Splátka + půjčka = velký závazek.',i:'oi-a',impact:'− 20 500 Kč/měs. + dluh 3,8 mil.',fixedImpact:-20500,flag:'hypoteka',flagVal:{hasHyp:true,hypBalance:3800000,hypYears:30,hypRate:0.055}},
+       {val:'rodice',t:'👨‍👩‍👦 Zůstane u rodičů — 3 000 Kč/měs.',d:'Symbolický příspěvek. Šetří maximum — ale kde je hranice pohodlí vs. budování?',i:'oi-g',impact:'Šetří 12–17 000 Kč/měs. navíc',fixedImpact:-3000}
+     ]
+   },{
+     key:'pujcka',title:'Studentská půjčka — strategie splácení',
+     opts:[
+       {val:'min',t:'Minimum — 2 800 Kč/měs.',d:'Splácí pomalu (~4 roky). Drží více peněz na investice.',i:'oi-b',impact:'Za 4 roky zaplatí ~9 000 Kč na úrocích navíc'},
+       {val:'agro',t:'Agresivně — 6 000 Kč/měs.',d:'Splatí za ~21 měsíců. Ušetří ~5 000 Kč na úrocích. Pak má volné ruce.',i:'oi-g',impact:'Zaplatí méně na úrocích, splatí dříve',fixedImpact:-3200}
+     ]
+   },{
+     key:'pojisteni',title:'Životní a invalidní pojištění',
+     opts:[
+       {val:'ano',t:'✅ Uzavřít pojistku — 1 600 Kč/měs.',d:'Ochrana při nemoci, úrazu nebo invaliditě. Teď se zdá zbytečné. Ale jednou se může hodit.',i:'oi-b',impact:'− 1 600 Kč/měs.',fixedImpact:-1600,flag:'pojisteni',flagVal:{hasPojisteni:true}},
+       {val:'ne',t:'❌ Bez pojistky — zatím jsem zdravý',d:'Ušetří 1 600 Kč/měs. na investice. Riziko: bez sítě při neočekávané události.',i:'oi-g',impact:'+ 1 600 Kč/měs. k investování'}
+     ]
+   }],
+   years:2,
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     const yrs=this.years;
+     addAllocInvestments(alloc, this.years);     // Student loan
+     if(S.flags.studentDluh>0){
+       const monthly=S.decisions.pujcka==='agro'?6000:2800;
+       S.flags.studentDluh=Math.max(0,S.flags.studentDluh-monthly*24+S.flags.studentDluh*0.079*2);
+       if(S.decisions.pujcka==='agro')S.flags.studentDluh=Math.max(0,S.flags.studentDluh-3200*24);
+     }
+     if(S.flags.hasHyp){S.capital.nemovitosti=3800000;S.capital.hypDluh=3800000;}
+   }
+  },
+  // ── 2 ──
+  {age:27,title:'Rutina & první test',sub:'Rok a půl v práci — zvyk vs. ambice',
+   sit:'Tomáš si zvykl na výplatu. Kamarádi utrácejí, on se rozhoduje. Přijde nabídka od spolupracovníka: <strong>společná investice do startupu</strong>. 50 000 Kč za 5% podíl. Může to být nic, nebo hodně.',
+   getFixed:()=>{
+     const f=[
+       {l:'Příjem',v:40000,type:'inc'},
+       {l:'Jídlo + domácnost',v:-9500,type:'out'},
+       {l:'Doprava',v:-2500,type:'out'},
+       {l:'Telefon + internet',v:-800,type:'out'}
+     ];
+     if(S.flags.hasPojisteni)f.push({l:'Pojistka',v:-1600,type:'out'});
+     if(S.decisions.bydleni==='najem')f.push({l:'Nájem',v:-15000,type:'out'});
+     else if(S.decisions.bydleni==='hypoteka')f.push({l:'Hypotéka',v:-20500,type:'out'});
+     else f.push({l:'Příspěvek rodičům',v:-3000,type:'out'});
+     if(S.flags.studentDluh>0)f.push({l:'Studentská půjčka',v:-(S.decisions.pujcka==='agro'?6000:2800),type:'out'});
+     return f;
+   },
+   decisions:[{
+     key:'startup',title:'Investice do kamarádova startupu — 50 000 Kč',
+     opts:[
+       {val:'ano',t:'💼 Investovat 50 000 Kč',d:'Rizikový podíl. Startup může zkrachovat (70 % šance) nebo vyrůst 10× (30 % šance). Rozhodne událost ve fázi 6.',i:'oi-a',impact:'− 50 000 Kč z rezervy',onetimeCost:50000,onetimeLabel:'Investice do startupu'},
+       {val:'ne',t:'🧘 Odmítnout — nedávám peníze na nejistoty',d:'Konzervativní rozhodnutí. Peníze zůstanou v regulérních investicích.',i:'oi-b',impact:'Žádná změna — disciplinované investování'}
+     ]
+   },{
+     key:'auto',title:'Auto — Tomáš dojíždí na MHD, ale zvažuje',
+     opts:[
+       {val:'ne',t:'🚌 Zůstat na MHD — 2 500 Kč/měs.',d:'Šetří, méně komfort, ale víc na investice.',i:'oi-g',impact:'Žádná změna'},
+       {val:'pouzite',t:'🚗 Ojeté auto — úvěr 180 000 Kč (RPSN 8,5 %)',d:'Splátka ~3 800 Kč/měs. / 5 let. Pohodlí vs. náklad. RPSN? <span class="tb" onclick="event.stopPropagation();showG(\'rpsn\')">pojem</span>',i:'oi-r',impact:'+ dluh 180 000 Kč, − 3 800 Kč/měs.',fixedImpact:-3800,flag:'auto',flagVal:{hasAuto:true,otherDluh:180000},onetimeCost:30000,onetimeLabel:'Záloha na auto'},
+       {val:'nove',t:'🚙 Nové auto na leasing — 6 500 Kč/měs.',d:'Nikdy nevlastníš, vždy nové. Vysoký fixní výdaj.',i:'oi-r',impact:'− 6 500 Kč/měs. trvale',fixedImpact:-6500}
+     ]
+   }],
+   years:2,
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     S.income=40000;
+     const yrs=this.years;
+     addAllocInvestments(alloc, this.years);
+     if(S.flags.studentDluh>0)S.flags.studentDluh=Math.max(0,S.flags.studentDluh*(1.079)-(S.decisions.pujcka==='agro'?6000:2800)*24);
+   }
+  },
+  // ── 3 ──
+  {age:29,title:'Vztah & společné finance',sub:'Klára vstoupí do Tomášova života',
+   sit:'Tomáš je 2 roky s Klárou (příjem <strong>32 000 Kč/měs.</strong>). Zvažují život společně — sdílené bydlení i finance. Nastolí systém, nebo každý jede sám?',
+   getFixed:()=>{
+     const f=[{l:'Příjem Tomáš',v:42000,type:'inc'},{l:'Příjem Klára',v:32000,type:'inc'}];
+     f.push({l:'Jídlo + domácnost',v:-12000,type:'out'});
+     f.push({l:'Doprava oba',v:-(S.flags.hasAuto?5500:5000),type:'out'});
+     if(S.flags.hasPojisteni)f.push({l:'Pojistky oba',v:-3200,type:'out'});
+     if(S.decisions.bydleni==='najem')f.push({l:'Nájem',v:-16000,type:'out'});
+     else if(S.decisions.bydleni==='hypoteka')f.push({l:'Hypotéka',v:-20500,type:'out'});
+     else f.push({l:'Příspěvek rodičům',v:-3000,type:'out'});
+     if(S.flags.studentDluh>0)f.push({l:'Studentská půjčka',v:-(S.decisions.pujcka==='agro'?0:2800),type:'out'});
+     if(S.capital.otherDluh>0)f.push({l:'Splátka auta',v:-3800,type:'out'});
+     return f;
+   },
+   decisions:[{
+     key:'finance_system',title:'Jak budou řídit společné finance?',
+     opts:[
+       {val:'pool',t:'🏦 Jeden společný účet — vše dáme dohromady',d:'Jednoduchý přehled, ale riziko: pokud se rozejdou, co s čím?',i:'oi-b',impact:'Kombinovaný příjem usnadní investice'},
+       {val:'split',t:'⚖️ Každý si platí svou část, investujeme zvlášť',d:'Zachovává finanční nezávislost. Složitější administrativa.',i:'oi-b',impact:'Nezávislost, ale méně synergií'},
+       {val:'ratio',t:'📊 Proporcionalita — každý dává 40 % příjmu do fondu',d:'Spravedlivé dle příjmů. Zbytek každého je jeho.',i:'oi-g',impact:'Flexibilní a férový systém'}
+     ]
+   },{
+     key:'bydleni2',title:'Bydlení pro oba',
+     opts:S.decisions.bydleni==='hypoteka'
+       ?[{val:'kdo_ma',t:'🏠 Klára se přistěhuje k Tomášovi',d:'Tomáš má hypotéku, Klára přispívá na náklady 8 000 Kč/měs.',i:'oi-g',impact:'Klára přidá 8 000 Kč/měs. do rozpočtu'}]
+       :[
+         {val:'vetsi_najem',t:'🏠 Větší nájem pro oba — 19 000 Kč/měs.',d:'Víc prostoru, ale stále podnájem.',i:'oi-r',impact:'− 19 000 Kč/měs. (sdíleno)'},
+         {val:'hypoteka2',t:'🏗️ Hypotéka dohromady — byt 4,5 mil. Kč',d:'Oba podepíší, splátka 24 500 Kč/měs. Lepší bonita = nižší úrok.',i:'oi-a',impact:'− 24 500 Kč/měs., dluh 4,5 mil.',flag:'hypoteka2',flagVal:{hasHyp:true,hypBalance:4500000,hypYears:30,hypRate:0.05}}
+       ]
+   }],
+   years:2,
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     S.income=42000;
+     const yrs=this.years;
+     if(S.decisions.bydleni2==='kdo_ma')S.capital.rezerva+=8000*24;
+     addAllocInvestments(alloc, this.years);
+     if(S.capital.otherDluh>0)S.capital.otherDluh=Math.max(0,S.capital.otherDluh-3800*24);
+   }
+  },
+  // ── 4 ──
+  {age:31,title:'Povýšení & kariéra',sub:'Tomáš seniorou — příjem roste',
+   sit:'Tomáš byl povýšen na senior analytika. <strong>Příjem +25 % → 52 000 Kč/měs.</strong> Klára 35 000 Kč. Lifestyle creep hrozí — více příjmu, ale automaticky i více výdajů?',
+   getFixed:()=>{
+     const f=[{l:'Příjem Tomáš',v:52000,type:'inc'},{l:'Příjem Klára',v:35000,type:'inc'}];
+     f.push({l:'Jídlo + domácnost',v:-13000,type:'out'},{l:'Doprava',v:-(S.flags.hasAuto?6000:5000),type:'out'});
+     if(S.flags.hasPojisteni)f.push({l:'Pojistky',v:-3200,type:'out'});
+     if(S.flags.hasHyp)f.push({l:'Hypotéka',v:-(S.flags.hypBalance===4500000?24500:20500),type:'out'});
+     else if(S.decisions.bydleni==='najem'||S.decisions.bydleni2==='vetsi_najem')f.push({l:'Nájem',v:-19000,type:'out'});
+     return f;
+   },
+   decisions:[{
+     key:'lifestyle',title:'Lifestyle creep — co s vyšším příjmem?',
+     opts:[
+       {val:'disiplina',t:'💪 Disciplína — přídavek jde rovnou do investic',d:'Výdaje zmrazíme na stejné úrovni. Celý přírůstek investujeme.',i:'oi-g',impact:'Investice +10 000 Kč/měs. automaticky'},
+       {val:'trochu',t:'⚖️ Trochu si přilepšíme, zbytek investujeme',d:'Zvýšíme výdaje o ~5 000 Kč/měs. na komfort. Zbytek investujeme.',i:'oi-b',impact:'Mírné zvýšení kvality života'},
+       {val:'zivot',t:'🍾 Žijeme lépe — zasloužíme si to',d:'Lepší restaurace, delší dovolené, nové auto. Příjem to unese.',i:'oi-r',impact:'+ životní radost, − budoucí kapitál'}
+     ]
+   },{
+     key:'klara_pojisteni',title:'Klára dosud bez pojistky — teď?',
+     opts:[
+       {val:'ano',t:'✅ Uzavřít Kláře pojistku — 1 400 Kč/měs.',d:'Ochrana jejich společného příjmu.',i:'oi-b',impact:'− 1 400 Kč/měs.',fixedImpact:-1400},
+       {val:'ne',t:'❌ Odložit — nejsou děti, riziko je nízké',d:'Šetří krátkodobě, ale co když přijde nečekaná věc?',i:'oi-g',impact:'+ 1 400 Kč/měs. do investic'}
+     ]
+   }],
+   years:3,
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     S.income=52000; // povýšení Tomáš
+     if(S.decisions.lifestyle==='zivot')S.joy+=4000*36;
+     const yrs=this.years;
+     addAllocInvestments(alloc, this.years);
+   }
+  },
+  // ── 5 ──
+  {age:34,title:'Ztráta práce — EVENT',sub:'Nečekaná rána',
+   sit:'Firma prochází restrukturalizací. Tomáš dostane výpověď — <strong>3 měsíce bez příjmu.</strong> Klára pracuje. Mají rezervu? Jsou pojištěni? Tohle je test.',
+   isEvent:true,
+   eventType:'bad',
+   eventIcon:'💼',
+   eventTitle:'Tomáš přišel o práci',
+   eventDesc:'Restrukturalizace firmy. Výpověď s dvouměsíčním odstupným. 3 měsíce hledá novou práci. Klára stále pracuje — příjem 35 000 Kč/měs., ale výdaje domácnosti běží dál.',
+   getFixed:()=>[
+     {l:'Příjem Klára (záchrana)',v:35000,type:'inc'},
+     {l:'Odstupné (2 měs.)',v:104000,type:'inc'},
+     {l:'Výdaje domácnosti',v:-22000,type:'out'},
+     {l:'Hypotéka/nájem',v:-(S.flags.hasHyp?22000:18000),type:'out'}
+   ],
+   decisions:[{
+     key:'job_reakce',title:'Jak Tomáš reaguje na ztrátu práce?',
+     opts:[
+       {val:'aktivni',t:'🎯 Aktivní hledání + kurzy — nastoupí za 2 měsíce s vyšším platem',d:'Využije čas na rekvalifikaci. Nastoupí na lepší pozici za 62 000 Kč/měs.',i:'oi-g',impact:'Nový plat +10 000 Kč/měs.'},
+       {val:'normalni',t:'📋 Standardní hledání — nastoupí za 3 měsíce',d:'Normální proces. Nastoupí na podobnou pozici za 52 000 Kč/měs.',i:'oi-b',impact:'Stejný plat, 3 měsíce pauza'},
+       {val:'freelance',t:'💻 Zkusí freelancing — nejistý příjem',d:'Může vydělat víc nebo méně. Riziko, ale svoboda.',i:'oi-a',impact:'Příjem 30–80 000 Kč/měs. — losuje se'}
+     ]
+   }],
+   years:1,
+   applyEvent(){
+     const loss=S.decisions.job_reakce==='normalni'?3:2;
+     const mesVydaj=(S.flags.hasHyp?22000:18000)+22000;
+     const kryje=S.capital.rezerva>=mesVydaj*loss;
+     if(kryje){
+       S.capital.rezerva-=Math.max(0,mesVydaj*loss-35000*loss-104000);
+     } else {
+       const deficit=mesVydaj*loss-35000*loss-104000-S.capital.rezerva;
+       S.capital.rezerva=0;
+       S.capital.etf=Math.max(0,S.capital.etf-Math.max(0,deficit));
+     }
+     if(S.decisions.job_reakce==='aktivni')S.income=62000;
+     else if(S.decisions.job_reakce==='freelance'){S.income=Math.random()>0.4?70000:45000;}
+     else S.income=52000; // stejná pozice
+     S.flags.jobLoss=true;
+   },
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     this.applyEvent();
+     // Přidej nové investice z alokace za tuto fázi
+     addAllocInvestments(alloc, this.years);
+   }
+  },
+  // ── 6 ──
+  {age:35,title:'Stabilizace & startup výsledek',sub:'Kariéra zpět na kolejích',
+   sit:'Tomáš je zpět v práci, silnější. A přichází zpráva ze startupu...',
+   isEvent:true,eventType:'neu',eventIcon:'📊',
+   eventTitle:S.decisions&&S.decisions.startup==='ano'?'Výsledek startupu':'Stabilní fáze',
+   eventDesc:'',
+   getFixed:()=>{
+     const f=[{l:'Příjem Tomáš',v:S.income||58000,type:'inc'},{l:'Příjem Klára',v:38000,type:'inc'}];
+     f.push({l:'Výdaje domácnosti',v:-14000,type:'out'},{l:'Doprava',v:-(S.flags.hasAuto?6000:5000),type:'out'});
+     if(S.flags.hasPojisteni)f.push({l:'Pojistky',v:-4600,type:'out'});
+     if(S.flags.hasHyp)f.push({l:'Hypotéka',v:-22000,type:'out'});
+     else if(S.decisions.bydleni==='najem')f.push({l:'Nájem',v:-19000,type:'out'});
+     return f;
+   },
+   decisions:[{
+     key:'kariéra_smer',title:'Kariérní směr pro příštích 5 let',
+     opts:[
+       {val:'korporat',t:'🏢 Korporát — stabilita, bonusy, benefity',d:'Jistota, postupný růst +5 %/rok. Volno a benefity.',i:'oi-b',impact:'Předvídatelný příjem, jistota'},
+       {val:'startup2',t:'🚀 Přejde do startupu — rizikovější, ale zajímavější',d:'Nižší fixní plat, ale podíl a potenciál. Příjem 70 000 + opce.',i:'oi-a',impact:'Nižší jistota, vyšší potenciál'},
+       {val:'zahranici',t:'🌍 Nabídka ze zahraničí — +60 % plat, ale přesun',d:'Praha → Mnichov. Plat 140 000 Kč ekvivalent, ale vyšší náklady (+80 %). Byt musí pronajmout nebo prodat.',i:'oi-a',impact:'Vyšší příjem, komplikovaná logistika'}
+     ]
+   }],
+   years:2,
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     // Startup výsledek
+     if(S.flags.startupIn && !S.flags.startupResolved){
+       S.flags.startupResolved=true;
+       if(Math.random()<0.3){S.capital.etf+=500000;}
+     }
+     // Kariéra — propíše se do S.income pro další fáze
+     if(S.decisions.kariéra_smer==='zahranici') S.income=Math.min(120000,(S.income||52000)+20000);
+     else if(S.decisions.kariéra_smer==='startup2') S.income=Math.min(120000,(S.income||52000)+10000);
+     addAllocInvestments(alloc, this.years);
+   }
+  },
+  // ── 7 ──
+  {age:37,title:'Miminko 👶',sub:'Rodina se rozrůstá',
+   sit:'Klára čeká dítě. <strong>Velká radost, nové výdaje.</strong> Klára půjde na 3 roky na rodičovskou (15 000 Kč/měs.). Tomáš je živitelem. Výdaje +12 000 Kč/měs. na dalších 18 let.',
+   isEvent:true,eventType:'good',eventIcon:'👶',
+   eventTitle:'Rodina roste',eventDesc:'',
+   getFixed:()=>{
+     const f=[{l:'Příjem Tomáš',v:S.income||62000,type:'inc'},{l:'Rodičovská Klára',v:15000,type:'inc'}];
+     f.push({l:'Výdaje domácnosti',v:-16000,type:'out'},{l:'Dítě (výdaje)',v:-12000,type:'out'},{l:'Doprava',v:-(S.flags.hasAuto?7000:5000),type:'out'});
+     if(S.flags.hasPojisteni)f.push({l:'Pojistky',v:-4600,type:'out'});
+     if(S.flags.hasHyp)f.push({l:'Hypotéka',v:-22000,type:'out'});
+     else f.push({l:'Nájem',v:-19000,type:'out'});
+     return f;
+   },
+   decisions:[{
+     key:'rodic_strategie',title:'Strategie při rodičovské',
+     opts:[
+       {val:'zmrazit',t:'❄️ Zmrazit investice — priorita je cashflow',d:'Pouze udržovací minimum. Za 3 roky se vrátíme na plné investice.',i:'oi-b',impact:'Portfolio poroste jen ze zhodnocení'},
+       {val:'udrzet',t:'💪 Udržet investice — složený úrok nepočká',d:'Přijmeme nižší komfort, ale nepřerušíme investiční řetěz.',i:'oi-g',impact:'Vyšší finální kapitál, nižší rezerva'},
+       {val:'pauza_radost',t:'👨‍👩‍👧 Užijeme si to naplno — jen první rok dítěte je takový',d:'Minimum investic 3 roky. Prožijeme to naplno.',i:'oi-a',impact:'Vysoká radost, nižší portfolio'}
+     ]
+   }],
+   years:3,
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     S.flags.hasKids=true;
+     const mult=S.decisions.rodic_strategie==='zmrazit'?0:S.decisions.rodic_strategie==='pauza_radost'?0.3:1;
+     if(S.decisions.rodic_strategie==='pauza_radost') S.joy+=20000*this.years*12;
+     addAllocInvestments(alloc, this.years, mult);
+   }
+  },
+  // ── 8 ──
+  {age:40,title:'Refinancování & přehled',sub:'Klára zpět v práci, review portfolia',
+   sit:'Klára se vrátila do práce — příjem 42 000 Kč. Přichází konec fixace hypotéky. <strong>Nový úrok 4,8 % místo 5,5 %.</strong> Ušetří ~1 800 Kč/měs. Čas přehodnotit celé portfolio.',
+   getFixed:()=>{
+     const f=[{l:'Příjem Tomáš',v:S.income||68000,type:'inc'},{l:'Příjem Klára',v:42000,type:'inc'}];
+     f.push({l:'Výdaje domácnosti',v:-17000,type:'out'},{l:'Dítě (3 roky)',v:-8000,type:'out'},{l:'Doprava',v:-(S.flags.hasAuto?7000:5000),type:'out'});
+     if(S.flags.hasPojisteni)f.push({l:'Pojistky',v:-4600,type:'out'});
+     if(S.flags.hasHyp)f.push({l:'Hypotéka (nový úrok)',v:-20700,type:'out'});
+     else f.push({l:'Nájem',v:-19000,type:'out'});
+     return f;
+   },
+   decisions:[{
+     key:'refin',title:'Refinancování — co s ušetřenými 1 800 Kč/měs.?',
+     opts:[
+       {val:'etf',t:'📈 Ušetřené jdou do ETF automaticky',d:'Malý, ale pravidelný přírůstek. Za 25 let ~150 000 Kč navíc.',i:'oi-g',impact:'+ malá, ale trvalá investice'},
+       {val:'hyp',t:'🏠 Mimořádná splátka — zkrátit hypotéku',d:'Snižuje celkový dluh. Psychická úleva, méně úroků.',i:'oi-b',impact:'Zkrátí hypotéku o ~2 roky'},
+       {val:'rezerva',t:'🛡️ Do rezervy — ještě nemáme dost',d:'Rezerva pod ideálních 6 měsíců. Bezpečnost first.',i:'oi-b',impact:'Silnější záchranná síť'}
+     ]
+   }],
+   years:3,
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     S.income=Math.min(120000,(S.income||60000)+8000); // Tomáš roste, Klára v getFixed
+     if(S.flags.hasHyp){
+       S.flags.hypRate=0.048;
+       if(S.decisions.refin==='hyp') S.capital.hypDluh=Math.max(0,S.capital.hypDluh-1800*this.years*12);
+       else if(S.decisions.refin==='rezerva') S.capital.rezerva+=1800*this.years*12;
+     }
+     addAllocInvestments(alloc, this.years);
+   }
+  },
+  // ── 9 ──
+  {age:43,title:'Tržní krize 📉',sub:'Test nervů a strategie',
+   sit:'Přichází globální recese. ETF portfolia padají o <strong>30 %</strong>. Zprávy jsou apokalyptické. Kamarádi prodávají. Tomáš má v portfoliu reálné peníze — a musí se rozhodnout.',
+   isEvent:true,eventType:'bad',eventIcon:'📉',eventTitle:'Trhy −30 %',eventDesc:'',
+   getFixed:()=>[
+     {l:'Příjem Tomáš',v:S.income||72000,type:'inc'},
+     {l:'Příjem Klára',v:44000,type:'inc'},
+     {l:'Výdaje domácnosti',v:-18000,type:'out'},
+     {l:'Dítě (6 let)',v:-8000,type:'out'},
+     {l:'Doprava',v:-(S.flags.hasAuto?7000:5000),type:'out'}
+   ],
+   decisions:[{
+     key:'krize',title:'Co uděláte s ETF portfoliem?',
+     opts:[
+       {val:'prodat',t:'😨 Prodám — nechci přijít o víc',d:'Zrealizuješ ztrátu. Až se trhy zotaví o 40 %, nebudeš tam.',i:'oi-r',impact:'Papírová ztráta se stane reálnou'},
+       {val:'vydrzet',t:'🧘 Nic nedělám — vydržím',d:'Historie: trhy se vždy zotavily. Nejhorší čas pro prodej je panika.',i:'oi-b',impact:'Za 2–3 roky portf. zpět a výš'},
+       {val:'dokoupit',t:'💪 Dokoupím — ceny jsou „ve slevě"',d:'Průměrování dolů. Funguje, pokud máš rezervu a nervy.',i:'oi-g',impact:'Vyžaduje rezervu min. 200 000 Kč'}
+     ]
+   }],
+   years:2,
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     // Krize — aplikuje se na stávající ETF
+     if(S.decisions.krize==='prodat'){
+       S.capital.rezerva+=S.capital.etf*0.7; S.capital.etf=0;
+     } else if(S.decisions.krize==='vydrzet'){
+       S.capital.etf*=0.7*1.40; // propad + zotavení za 2 roky
+     } else if(S.decisions.krize==='dokoupit'){
+       const dokup=Math.min(S.capital.rezerva*0.4,250000);
+       S.capital.rezerva-=dokup;
+       S.capital.etf=S.capital.etf*0.7*1.44+dokup*1.44;
+     }
+     S.flags.crisisHappened=true;
+     addAllocInvestments(alloc, this.years);
+   }
+  },
+  // ── 10 ──
+  {age:45,title:'Investiční příležitost',sub:'Druhá nemovitost nebo větší portfolio?',
+   sit:'Tomáš má nakumulovaný kapitál. Kamarád nabízí <strong>investiční byt v Brně za 3,5 mil. Kč.</strong> Nájem 14 500 Kč/měs. Nebo zůstat v akciovém portfoliu?',
+   getFixed:()=>{
+     const f=[{l:'Příjem Tomáš',v:S.income||78000,type:'inc'},{l:'Příjem Klára',v:47000,type:'inc'}];
+     f.push({l:'Výdaje domácnosti',v:-19000,type:'out'},{l:'Dítě (8 let, škola)',v:-9000,type:'out'},{l:'Doprava',v:-(S.flags.hasAuto?7000:5500),type:'out'});
+     if(S.flags.hasPojisteni)f.push({l:'Pojistky',v:-4600,type:'out'});
+     if(S.flags.hasHyp)f.push({l:'Hypotéka',v:-20700,type:'out'});
+     else f.push({l:'Nájem',v:-19000,type:'out'});
+     return f;
+   },
+   decisions:[{
+     key:'inv_byt',title:'Investiční byt za 3,5 mil. Kč',
+     opts:[
+       {val:'koupit_am',t:'🏘️ Koupit — americká hypotéka na stávající byt <span class="tb" onclick="event.stopPropagation();showG(\'amhypoteka\')">pojem</span>',d:'Zástavíme první byt, dostaneme 2,5 mil. + dáme 1 mil. z portfolia. Splátka 14 000 Kč, nájem kryje.',i:'oi-b',impact:'+ nemovitost 3,5 mil., + 14 500 Kč/měs. nájem'},
+       {val:'koupit_hyp',t:'🏘️ Koupit — nová hypotéka na investiční byt',d:'Vlastní hypotéka na druhý byt. Splátka 19 000 Kč. Nájem jen částečně kryje − 4 500 Kč/měs.',i:'oi-a',impact:'+ nemovitost 3,5 mil., − 4 500 Kč/měs.'},
+       {val:'nekoupit',t:'📈 Nekoupit — raději zdvojnásobím ETF',d:'Nemovitosti jsou komplexní (nájemníci, opravy, daně). Preferuji pasivní investování.',i:'oi-g',impact:'Více peněz do ETF místo nemovitosti'}
+     ]
+   }],
+   years:3,
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     if(S.decisions.inv_byt==='koupit_am'){
+       S.flags.hasInvByt=true;
+       S.capital.nemovitosti+=3500000;
+       S.capital.hypDluh+=2500000;
+       S.capital.etf=Math.max(0,S.capital.etf-1000000);
+       S.flags.invBytSplatka=14000; S.flags.invBytNajem=14500;
+     } else if(S.decisions.inv_byt==='koupit_hyp'){
+       S.flags.hasInvByt=true;
+       S.capital.nemovitosti+=3500000;
+       S.capital.hypDluh+=3500000;
+       S.flags.invBytSplatka=19000; S.flags.invBytNajem=14500;
+     }
+     // Nájem z inv. bytu se propíše do rezervy (applyPassiveGrowth to dělá průběžně od příští fáze)
+     addAllocInvestments(alloc, this.years);
+   }
+  },
+  // ── 11 ──
+  {age:48,title:'Mid-life rozhodnutí',sub:'Životní bilance v polovině cesty',
+   sit:'Tomáš je 48. Dítě roste (11 let). Přichází velká rozhodnutí: <strong>nové auto, rekonstrukce bytu, vzdělání dítěte.</strong> Co je priorita?',
+   getFixed:()=>{
+     const f=[{l:'Příjem Tomáš',v:S.income||85000,type:'inc'},{l:'Příjem Klára',v:50000,type:'inc'}];
+     f.push({l:'Výdaje domácnosti',v:-20000,type:'out'},{l:'Dítě (11 let)',v:-10000,type:'out'},{l:'Doprava',v:-(S.flags.hasAuto?8000:5500),type:'out'});
+     if(S.flags.hasPojisteni)f.push({l:'Pojistky',v:-4600,type:'out'});
+     if(S.flags.hasHyp)f.push({l:'Hypotéka',v:-20700,type:'out'});
+     else f.push({l:'Nájem',v:-19000,type:'out'});
+     if(S.flags.hasInvByt)f.push({l:'Inv. byt splátka − nájem',v:-4500,type:'out'});
+     return f;
+   },
+   decisions:[{
+     key:'auto2',title:'Auto — starý vůz dosluhuje',
+     opts:[
+       {val:'ne',t:'🚌 Bez auta — MHD a sdílení',d:'Šetří 8 000 Kč/měs. trvale. Méně komfortní.',i:'oi-g',impact:'+ 8 000 Kč/měs. do investic'},
+       {val:'stredni',t:'🚗 Střední třída — 450 000 Kč z úspor',d:'Jednorázový výdaj z rezervy. Komfort bez měsíční splátky.',i:'oi-b',impact:'− 450 000 Kč z rezervy',onetimeCost:450000,onetimeLabel:'Koupě auta'},
+       {val:'premium',t:'🚙 Prémiové auto — leasing 9 500 Kč/měs.',d:'Vždy nové, vždy leasing. Komfort za trvalý výdaj.',i:'oi-r',impact:'− 9 500 Kč/měs. trvale'}
+     ]
+   },{
+     key:'rekonstrukce',title:'Rekonstrukce bytu — plánují ji 5 let',
+     opts:[
+       {val:'ano',t:'🔧 Rekonstrukce — 600 000 Kč',d:'Zvýší hodnotu bytu o ~800 000 Kč. Ale velký výdaj z rezervy.',i:'oi-b',impact:'− 600 000 Kč z rezervy, + hodnota bytu ~800 000 Kč',onetimeCost:600000,onetimeLabel:'Rekonstrukce bytu'},
+       {val:'ne',t:'❌ Odložit — investice jsou teď důležitější',d:'Byt bude potřeba opravit jednou. Ale ne nutně teď.',i:'oi-g',impact:'Žádný výdaj, kapitál roste dál'}
+     ]
+   }],
+   years:3,
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     if(S.decisions.auto2==='premium') S.joy+=9500*this.years*12;
+     if(S.decisions.rekonstrukce==='ano') S.capital.nemovitosti+=800000;
+     addAllocInvestments(alloc, this.years);
+   }
+  },
+  // ── 12 ──
+  {age:51,title:'Zdravotní událost 🏥',sub:'Nečekané zdravotní komplikace',
+   sit:'Tomáš utrpěl vážnější zdravotní komplikace — <strong>3 měsíce pracovní neschopnosti.</strong> Výdaje na léčení 80 000 Kč. Má pojistku? Má rezervu? Toto je druhý velký test.',
+   isEvent:true,eventType:'bad',eventIcon:'🏥',eventTitle:'Zdravotní komplikace',eventDesc:'',
+   getFixed:()=>[
+     {l:'Nemocenská (60 % platu)',v:Math.round((S.income||85000)*0.4),type:'inc'},
+     {l:'Příjem Klára',v:52000,type:'inc'},
+     {l:'Výdaje domácnosti',v:-21000,type:'out'},
+     {l:'Léčení + rehabilitace',v:-80000,type:'out'}
+   ],
+   decisions:[{
+     key:'zdravi_reakce',title:'Jak zvládnete zdravotní výpadek?',
+     opts:[
+       {val:'rezerva',t:'🛡️ Sáhneme do rezervy',d:'Pokud máme ≥ 200 000 Kč rezervy, zvládneme bez prodeje investic.',i:'oi-b',impact:'Závisí na výši vaší rezervy'},
+       {val:'prodat_invest',t:'📉 Prodáme část investic',d:'Pokud rezerva nestačí, prodáme ETF — třeba zrovna za nízký ceny.',i:'oi-r',impact:'Prodej investic v nevhodný čas'},
+       {val:'pujcit',t:'🏦 Krátkodobý úvěr 100 000 Kč (RPSN 12 %)',d:'Nezahýbáme s investicemi, ale zaplatíme za úvěr.',i:'oi-a',impact:'− ~12 000 Kč navíc na úrocích'}
+     ]
+   }],
+   years:2,
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     applyPassiveGrowth(this.years);
+     const naklad=80000+Math.round((S.income||85000)*0.4)*3;
+     const pojVyplata=S.flags.hasPojisteni?Math.round((S.income||85000)*0.6)*3:0;
+     const cistyNaklad=Math.max(0,naklad-pojVyplata);
+     if(S.decisions.zdravi_reakce==='rezerva') S.capital.rezerva=Math.max(0,S.capital.rezerva-cistyNaklad);
+     else if(S.decisions.zdravi_reakce==='prodat_invest') S.capital.etf=Math.max(0,S.capital.etf-cistyNaklad);
+     else S.capital.otherDluh+=100000;
+     S.flags.healthEvent=true;
+     addAllocInvestments(alloc, this.years);
+   }
+  },
+  // ── 13 ──
+  {age:53,title:'Hypotéka — finální rozhodnutí',sub:'Splatit nebo investovat?',
+   sit:'Tomáš je 53. Zbývá ~700 000 Kč hypotéky, 7 let. <strong>Má k dispozici 700 000 Kč úspor.</strong> Klasická dilemata: splatit a mít klid, nebo investovat a mít víc?',
+   getFixed:()=>{
+     const f=[{l:'Příjem Tomáš',v:S.income||95000,type:'inc'},{l:'Příjem Klára',v:55000,type:'inc'}];
+     f.push({l:'Výdaje domácnosti',v:-22000,type:'out'},{l:'Dítě (16 let, střední)',v:-11000,type:'out'},{l:'Doprava',v:-(S.flags.hasAuto||S.decisions.auto2!=='ne'?8000:5500),type:'out'});
+     if(S.flags.hasPojisteni)f.push({l:'Pojistky',v:-4600,type:'out'});
+     if(S.flags.hasHyp)f.push({l:'Hypotéka (zbývá 7 let)',v:-20700,type:'out'});
+     return f;
+   },
+   decisions:[{
+     key:'hyp_splaceni',title:'700 000 Kč — co s tím?',
+     opts:[
+       {val:'splatit',t:'✅ Splatit hypotéku — konec dluhu',d:'Ušetříš ~130 000 Kč na úrocích. Psychický klid. Bez dluhu do důchodu.',i:'oi-b',impact:'Ušetří 130 000 Kč úroků, likvidita pryč'},
+       {val:'investovat',t:'📈 Investovat — protiproud <span class="tb" onclick="event.stopPropagation();showG(\'protiproud\')">pojem</span>',d:'Hypotéka 4,8 %, ETF ~7 %. Za 7 let bude 700 000 Kč → ~1 127 000 Kč. Rozdíl +297 000 Kč.',i:'oi-g',impact:'Matematicky výhodnější — pokud trhy rostou'},
+       {val:'preplatky',t:'⚖️ Pravidelné přeplatky 5 000 Kč/měs.',d:'Zkrátí splácení o ~3 roky. Zachová část likvidity. Kompromis.',i:'oi-b',impact:'Ušetří ~65 000 Kč, zkrátí o 3 roky'}
+     ]
+   }],
+   years:3,
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     const zbyvaDluh=S.capital.hypDluh>0?Math.min(700000,S.capital.hypDluh):0;
+     if(S.decisions.hyp_splaceni==='splatit'){
+       S.capital.rezerva=Math.max(0,S.capital.rezerva-zbyvaDluh);
+       S.capital.hypDluh=Math.max(0,S.capital.hypDluh-zbyvaDluh);
+     } else if(S.decisions.hyp_splaceni==='investovat'){
+       // Protiproud — ponecháme dluh, investujeme místo splacení
+       let e=zbyvaDluh; for(let y=0;y<7;y++)e*=1.07;
+       S.capital.etf+=e-zbyvaDluh;
+     } else {
+       S.capital.hypDluh=Math.max(0,S.capital.hypDluh-5000*this.years*12);
+     }
+     addAllocInvestments(alloc, this.years);
+   }
+  },
+  // ── 14 ──
+  {age:56,title:'Předdůchodová strategie',sub:'Konzervativnější portfolio před cílovou rovinou',
+   sit:'Do důchodu zbývá ~9 let. Čas snižovat riziko — nebo ne? Tomáš přemýšlí o složení portfolia a o DIP. Dítě odešlo na VŠ — výdaje mírně klesají.',
+   getFixed:()=>{
+     const f=[{l:'Příjem Tomáš',v:S.income||105000,type:'inc'},{l:'Příjem Klára',v:58000,type:'inc'}];
+     f.push({l:'Výdaje domácnosti',v:-18000,type:'out'},{l:'Doprava',v:-(S.flags.hasAuto||S.decisions.auto2!=='ne'?8000:5500),type:'out'});
+     if(S.flags.hasPojisteni)f.push({l:'Pojistky',v:-4600,type:'out'});
+     if(S.capital.hypDluh>0)f.push({l:'Hypotéka (zbývá)',v:-15000,type:'out'});
+     return f;
+   },
+   decisions:[{
+     key:'portfolio_mix',title:'Složení portfolia před důchodem',
+     opts:[
+       {val:'akcie',t:'📈 Zůstat 100 % v akciích',d:'9 let je ještě dost. Nechci snižovat výnos před finišem.',i:'oi-a',impact:'Vyšší potenciál, ale krize by mohla přijít těsně před důchodem'},
+       {val:'mix70',t:'⚖️ 70 % akcie + 30 % dluhopisy',d:'Klasická předdůchodová strategie. Snižuje riziko, trochu i výnos.',i:'oi-g',impact:'Vyvážené riziko'},
+       {val:'mix50',t:'🛡️ 50 % akcie + 50 % dluhopisy',d:'Výrazně nižší volatilita. Výnos ~5,5 % p.a. Klidný spánek.',i:'oi-b',impact:'Bezpečné, ale nižší finální kapitál'}
+     ]
+   },{
+     key:'pomoc_dite',title:'Dítě na VŠ — finanční pomoc?',
+     opts:[
+       {val:'plna',t:'👨‍👩‍🎓 Plná podpora — platíme vše (15 000 Kč/měs.)',d:'Dítě se učí, nestará se o peníze. Ale vaše portfolio to pocítí.',i:'oi-r',impact:'− 15 000 Kč/měs. po dobu 4 let'},
+       {val:'castecna',t:'⚖️ Částečná pomoc — 7 000 Kč/měs.',d:'Naučíme ho zodpovědnosti, ale nezanecháme ho bez pomoci.',i:'oi-b',impact:'− 7 000 Kč/měs. po dobu 4 let'},
+       {val:'zadna',t:'💪 Ať se postaví na vlastní nohy',d:'Půjčky, brigády, stipendia. Naši mu dali vzdělání, teď na něj.',i:'oi-g',impact:'Nulový výdaj navíc'}
+     ]
+   }],
+   years:4,
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     let rocniVynos=0.07;
+     if(S.decisions.portfolio_mix==='mix70') rocniVynos=0.063;
+     else if(S.decisions.portfolio_mix==='mix50') rocniVynos=0.055;
+     // Přesun části ETF do dluhopisů dle zvolené strategie
+     const presuv=S.decisions.portfolio_mix!=='akcie'?S.capital.etf*0.3:0;
+     S.capital.dluhopisy+=presuv; S.capital.etf=Math.max(0,S.capital.etf-presuv);
+     // Pomoc dětem
+     const pomoc=S.decisions.pomoc_dite==='plna'?15000:S.decisions.pomoc_dite==='castecna'?7000:0;
+     S.capital.rezerva=Math.max(0,S.capital.rezerva-pomoc*this.years*12);
+     S.joy+=pomoc*this.years*12;
+     addAllocInvestments(alloc, this.years, 1, rocniVynos);
+   }
+  },
+  // ── 15 ──
+  {age:60,title:'Finální sprint 🏁',sub:'Posledních 5 let před důchodem',
+   sit:'Tomáš je 60. DIP se odemkne. Hypotéka (pokud zbývá) dobíhá. <strong>5 let do cíle.</strong> Čas optimalizovat každou korunu.',
+   getFixed:()=>{
+     const f=[{l:'Příjem Tomáš',v:S.income||105000,type:'inc'},{l:'Příjem Klára',v:60000,type:'inc'}];
+     f.push({l:'Výdaje domácnosti',v:-17000,type:'out'},{l:'Doprava',v:-5000,type:'out'});
+     if(S.flags.hasPojisteni)f.push({l:'Pojistky (poslední roky)',v:-4600,type:'out'});
+     if(S.capital.hypDluh>0)f.push({l:'Doplatek hypotéky',v:-12000,type:'out'});
+     return f;
+   },
+   decisions:[{
+     key:'dip_strategie',title:'DIP se odemkl — co s ním?',
+     opts:[
+       {val:'nechat',t:'🏦 Nechat v DIP — výnos pokračuje',d:'Peníze v DIP dál rostou bez daní. Vyberu postupně v důchodu.',i:'oi-g',impact:'Optimální — peníze stále pracují'},
+       {val:'vybrat_etf',t:'📈 Přesunout z DIP do ETF',d:'Větší flexibilita, ale přijdeme o daňové výhody DIP.',i:'oi-b',impact:'Více volnosti, trochu méně efektivity'},
+       {val:'vybrat_cas',t:'💰 Vybrat část DIP na jednorázový výdaj',d:'Rekonstrukce, dovolená snů, pomoc dětem. Jednorázové potěšení.',i:'oi-a',impact:'− z portfolia, + spokojenost'}
+     ]
+   },{
+     key:'duchod_strat',title:'Strategie výběru v důchodu',
+     opts:[
+       {val:'pravidlo4',t:'📊 Pravidlo 4 % — vybírat ročně 4 % portfolia',d:'Peníze vydrží celý důchod. Portfolio zůstane investované a generuje výnosy.',i:'oi-g',impact:'Doporučená strategie finančního plánování'},
+       {val:'antuita',t:'🏦 Renta / anuita od pojišťovny',d:'Garantovaná měsíční platba do konce života. Menší, ale jistá.',i:'oi-b',impact:'Jistota nad výnosem'},
+       {val:'volne',t:'🎯 Postupný výběr dle potřeby',d:'Flexibilní — vybíráme, co potřebujeme. Bez systému.',i:'oi-a',impact:'Flexibilní, ale náchylné k podvýběru i převýběru'}
+     ]
+   }],
+   years:5,
+   apply(alloc){
+     applyPassiveGrowth(this.years);
+     let rocniVynos=0.065;
+     if(S.decisions.portfolio_mix==='mix70') rocniVynos=0.060;
+     else if(S.decisions.portfolio_mix==='mix50') rocniVynos=0.053;
+     if(S.decisions.dip_strategie==='vybrat_cas'){S.joy+=S.capital.dip*0.3;S.capital.dip*=0.7;}
+     else if(S.decisions.dip_strategie==='vybrat_etf'){S.capital.etf+=S.capital.dip*0.85;S.capital.dip=0;}
+     S.capital.hypDluh=0; // Hypotéka dobíhá
+     addAllocInvestments(alloc, this.years, 1, rocniVynos);
+     S.capital.rezerva+=S.freeMonthly*(alloc.rez/100)*60*1.10;
+     S.joy+=S.freeMonthly*(alloc.joy/100)*60;
+     if(alloc.hyp>0)S.capital.hypDluh=Math.max(0,S.capital.hypDluh-S.freeMonthly*(alloc.hyp/100)*60);
+     if(S.capital.hypDluh>0)S.capital.hypDluh=0;
+   }
+  }
+];
+
+// ── BUILD CONTEXT — shrnutí aktivních závazků z minulých rozhodnutí ──
+function buildContext(){
+  if(S.phase===0) return ''; // intro phase, nothing yet
+  const lines=[];
+
+  // Bydlení
+  if(S.decisions.bydleni==='hypoteka'||S.decisions.bydleni2==='hypoteka2'||S.flags.hasHyp){
+    const dluh=Math.round(S.capital.hypDluh/1000);
+    lines.push(`🏠 <strong>Hypotéka:</strong> zbývá ~${dluh > 0 ? dluh+'k Kč' : 'splacena'}`);
+  } else if(S.decisions.bydleni==='najem'||S.decisions.bydleni2==='vetsi_najem'){
+    lines.push('🏠 <strong>Bydlení:</strong> stále v nájmu');
+  } else if(S.decisions.bydleni==='rodice'){
+    lines.push('🏠 <strong>Bydlení:</strong> stále u rodičů');
+  }
+
+  // Pojistka
+  if(S.flags.hasPojisteni) lines.push('🛡️ <strong>Pojistka:</strong> aktivní — ochrana při nemoci/úrazu');
+  else if(S.phase>1) lines.push('⚠️ <strong>Pojistka:</strong> žádná — při nehodě jdeš do rezervy nebo portfolia');
+
+  // Auto
+  if(S.decisions.auto==='pouzite') lines.push(`🚗 <strong>Auto (úvěr):</strong> zbývá dluh ~${Math.round(S.capital.otherDluh/1000)}k Kč`);
+  else if(S.decisions.auto==='nove') lines.push('🚙 <strong>Leasing:</strong> 6 500 Kč/měs. trvale');
+
+  // Studentský dluh
+  if(S.flags.studentDluh>1000) lines.push(`🎓 <strong>Studentská půjčka:</strong> zbývá ~${Math.round(S.flags.studentDluh/1000)}k Kč`);
+  else if(S.phase>2 && S.flags.studentDluh<=0) lines.push('✅ <strong>Studentská půjčka:</strong> splacena');
+
+  // Portfolio přehled
+  const port=S.capital.etf+S.capital.dip+S.capital.dluhopisy;
+  if(port>50000) lines.push(`📈 <strong>Portfolio:</strong> ${fmtM(port)} (ETF + DIP + dluhopisy)`);
+  if(S.capital.rezerva>20000) lines.push(`🛡️ <strong>Rezerva:</strong> ${fmtM(S.capital.rezerva)}`);
+
+  // Inv byt
+  if(S.flags.hasInvByt) lines.push(`🏘️ <strong>Investiční byt:</strong> příjem z nájmu ~14 500 Kč/měs.`);
+
+  // Děti
+  if(S.flags.hasKids) lines.push('👶 <strong>Rodina:</strong> dítě v domácnosti — extra výdaje');
+
+  // Ztráta práce v minulosti
+  if(S.flags.jobLoss && S.phase>5) lines.push('💼 <strong>Ztráta práce (fáze 5):</strong> překonáno');
+
+  return lines.length ? lines.join(' &nbsp;·&nbsp; ') : '';
+}
+
+// ── ADD ALLOC INVESTMENTS — přidá nové investice z alokace za danou fázi ──
+// Volá se na konci každé apply() po applyPassiveGrowth
+// mult = multiplikátor (1 = plná alokace, 0.3 = omezená při rodičovské)
+// etfRate = roční výnos ETF (default 7 %)
+function addAllocInvestments(alloc, years, mult=1, etfRate=0.07){
+  const m=S.freeMonthly;
+  S.capital.etf    += growMonthly(m*(alloc.etf/100)*mult, etfRate, years);
+  S.capital.dip    += growMonthly(m*(alloc.dip/100)*0.85*mult, 0.045, years);
+  S.capital.dluhopisy += growMonthly(m*(alloc.dluh/100)*mult, 0.04, years);
+  S.capital.rezerva   += m*(alloc.rez/100)*years*12*1.035; // spořicí úrok
+  S.joy               += m*(alloc.joy/100)*years*12;
+  if(alloc.hyp>0)
+    S.capital.hypDluh = Math.max(0, S.capital.hypDluh - m*(alloc.hyp/100)*years*12);
+}
+
+// ── PASSIVE GROWTH — volá se automaticky na začátku každé apply() ──
+function applyPassiveGrowth(years){
+  // Stávající portfolio roste
+  S.capital.etf *= Math.pow(1.07,years);
+  S.capital.dip *= Math.pow(1.045,years);
+  S.capital.dluhopisy *= Math.pow(1.04,years);
+  // Nemovitost roste
+  if(S.flags.hasHyp||S.flags.hasInvByt) S.capital.nemovitosti*=Math.pow(1.04,years);
+  // Hypoteční dluh se splácí přirozeně
+  if(S.capital.hypDluh>0&&S.flags.hasHyp){
+    const splatka=S.flags.hypBalance===4500000?24500:S.flags.hypBalance===3800000?20500:22000;
+    const r=( S.flags.hypRate||0.055)/12;
+    let d=S.capital.hypDluh;
+    for(let m=0;m<years*12;m++){const u=d*r;d=Math.max(0,d-(splatka-u));}
+    S.capital.hypDluh=d;
+  }
+  // Auto dluh se splácí
+  if(S.capital.otherDluh>0){
+    const sp=S.decisions.auto==='pouzite'?3800:S.decisions.auto==='nove'?0:0;
+    if(sp>0) S.capital.otherDluh=Math.max(0,S.capital.otherDluh-sp*years*12);
+  }
+  // Studentský dluh se splácí
+  if(S.flags.studentDluh>0){
+    const sp=S.decisions.pujcka==='agro'?6000:2800;
+    const r=0.079/12;let d=S.flags.studentDluh;
+    for(let m=0;m<years*12;m++){d=d*(1+r)-sp;if(d<=0){d=0;break;}}
+    S.flags.studentDluh=Math.max(0,d);
+  }
+  // Čistý nájem z investičního bytu
+  if(S.flags.hasInvByt){
+    const splatkaInvHyp=S.decisions.inv_byt==='koupit_hyp'?19000:0;
+    const cisty=Math.max(0,(14500-splatkaInvHyp)*0.8);
+    S.capital.rezerva+=cisty*years*12;
+    // Hypoteční dluh inv. bytu se splácí
+    if(S.decisions.inv_byt==='koupit_hyp'&&S.capital.hypDluh>2000000){
+      const r2=0.055/12;let d=S.capital.hypDluh-S.capital.nemovitosti*0.5;
+      for(let m=0;m<years*12;m++){d=Math.max(0,d-(19000-d*r2));}
+    }
+  }
+}
+
+// ── GAME FLOW ─────────────────────────────────────────────
+function startGame(){
+  const n=document.getElementById('teamIn').value.trim();
+  if(!n){alert('Zadejte název týmu!');return;}
+  S.team=n;
+  document.getElementById('mainHdr').style.display='block';
+  document.getElementById('mainProg').style.display='flex';
+  document.getElementById('hdrTeam').textContent=n;
+  S.income=38000;
+  renderPhase();
+}
+
+function renderPhase(){
+  const ph=PHASES[S.phase];
+  tempFixed={}; tempOnetime={}; S.decFlags={};
+  updateProg();
+
+  // Phase labels
+  document.getElementById('phNum').textContent=`Fáze ${S.phase+1} / 15 — věk ${ph.age} let`;
+  document.getElementById('phTitle').textContent=ph.title;
+  document.getElementById('phSub').textContent=ph.sub;
+  // Build dynamic context strip showing active commitments
+  const ctx=buildContext();
+  document.getElementById('phSit').innerHTML=`<div class="age">${ph.age} let</div>${ph.sit}`+(ctx?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(212,168,67,.15);font-size:12px;color:var(--text2);line-height:1.9">${ctx}</div>`:'');
+
+  // Event
+  const evEl=document.getElementById('phEvent');
+  if(ph.isEvent){
+    const col=ph.eventType||'neu';
+    evEl.style.display='block';
+    evEl.innerHTML=`<div class="evt ${col}"><div class="evt-icon">${ph.eventIcon}</div><div class="evt-title">${ph.eventTitle}</div><div class="evt-desc">${ph.eventDesc||''}</div></div>`;
+  } else evEl.style.display='none';
+
+  // Fixní výdaje + volný příjem — živě přes recalcBudget()
+  recalcBudget();
+
+  // Key decisions
+  const decEl=document.getElementById('phDecisions');
+  let decHtml='';
+  if(ph.decisions){
+    ph.decisions.forEach(dec=>{
+      decHtml+=`<div class="card"><div class="card-t">${dec.title}</div><div class="dec-group">`;
+      dec.opts.forEach(o=>{
+        const fv=JSON.stringify(o.flagVal||null).replace(/"/g,'&quot;');
+        const oc=o.onetimeCost||0;
+        const ol=o.onetimeLabel?o.onetimeLabel.replace(/'/g,"\\'"):'';
+        decHtml+=`<div class="dec-opt" onclick="pickDec(this,'${dec.key}','${o.val}',${fv},${o.fixedImpact||0},${oc},'${ol}')">
+          <div class="opt-t">${o.t}</div>
+          <div class="opt-d">${o.d}</div>
+          <div class="opt-i ${o.i||''}">${o.impact||''}</div>
+        </div>`;
+      });
+      decHtml+='</div></div>';
+    });
+  }
+  decEl.innerHTML=decHtml;
+
+  // Sliders — předvyplnit z minulé fáze, nebo nulou v první fázi
+  const prev=S.lastAlloc||{rez:0,etf:0,dip:0,dluh:0,hyp:0,joy:0};
+  const total=prev.rez+prev.etf+prev.dip+prev.dluh+prev.hyp+prev.joy;
+  const scale=total>100?(100/total):1;
+  const isFirstPhase=S.phase===0;
+  ['rez','etf','dip','dluh','hyp','joy'].forEach(id=>{
+    const el=document.getElementById('sl-'+id);
+    if(el) el.value=isFirstPhase?0:Math.round((prev[id]||0)*scale);
+  });
+  // Ukáž hint o předvyplnění pokud nejde o první fázi
+  const hint=document.getElementById('alloc-hint');
+  if(!isFirstPhase&&total>0){
+    hint.style.display='block';
+    hint.className='ibox';
+    hint.innerHTML='↩️ <strong>Rozložení převzato z minulé fáze</strong> — zkontroluj, zda stále dává smysl, a uprav dle nové situace.';
+  } else {
+    hint.style.display='none';
+  }
+  // Show/hide hyp slider
+  document.getElementById('row-hyp').style.display=S.flags.hasHyp&&S.capital.hypDluh>10000?'flex':'none';
+  updateAlloc();
+  updateHeader();
+  showScr('phase');
+}
+
+// tempFixed: { key -> fixedImpact } — měsíční dopady aktuálních rozhodnutí
+// tempOnetime: { key -> { cost, label } } — jednorázové výdaje z rezervy
+let tempFixed={}, tempOnetime={};
+
+function pickDec(el,key,val,flagVal,fixedImpact,onetimeCost,onetimeLabel){
+  const card=el.closest('.card');
+  // Odvolej předchozí volbu tohoto klíče
+  card.querySelectorAll('.dec-opt').forEach(o=>o.classList.remove('sel'));
+  // Odstraň předchozí flagVal pro tento klíč pokud byl
+  if(S.decFlags&&S.decFlags[key]) delete S.decFlags[key];
+
+  el.classList.add('sel');
+  S.decisions[key]=val;
+
+  // Ulož flagVal pro aplikaci při potvrzení (ne hned — jinak se sčítají)
+  if(!S.decFlags) S.decFlags={};
+  if(flagVal) S.decFlags[key]=flagVal;
+
+  // Měsíční fixedImpact — vždy přepiš předchozí hodnotu pro tento klíč
+  tempFixed[key]=fixedImpact||0;
+
+  // Jednorázový výdaj z rezervy — vždy přepiš předchozí hodnotu pro tento klíč
+  if(onetimeCost){
+    tempOnetime[key]={cost:onetimeCost, label:onetimeLabel||'Jednorázový výdaj'};
+  } else {
+    delete tempOnetime[key];
+  }
+
+  recalcBudget();
+}
+
+// Přepočítá živou bilanci z getFixed() + aktuálních rozhodnutí
+function recalcBudget(){
+  const ph=PHASES[S.phase];
+  const fixed=ph.getFixed();
+  let totalInc=0,totalOut=0;
+  let gridHtml='';
+  fixed.forEach(f=>{
+    if(f.type==='inc') totalInc+=f.v;
+    else totalOut+=Math.abs(f.v);
+    gridHtml+=`<div class="fx"><div class="fx-l">${f.l}</div><div class="fx-v ${f.type==='inc'?'inc':'out'}">${f.type==='inc'?'+':'-'}${fmt(Math.abs(f.v))}</div></div>`;
+  });
+
+  // Měsíční dopady rozhodnutí — součet (každý klíč má max jednu hodnotu)
+  let decImpact=0;
+  Object.values(tempFixed).forEach(v=>decImpact+=v);
+
+  // Jednorázové výdaje — zobraz jako info řádky
+  let onetimeHtml='';
+  let onetimeTotal=0;
+  Object.values(tempOnetime).forEach(o=>{
+    const muze=S.capital.rezerva>=o.cost;
+    onetimeHtml+=`<div class="fx"><div class="fx-l">${o.label}</div>
+      <div class="fx-v ${muze?'out':''}` + ` " style="${muze?'':'color:var(--red);font-weight:700'}">`
+      + `${muze?'−':'⚠️ −'}${fmt(o.cost)}</div></div>`;
+    onetimeTotal+=o.cost;
+  });
+
+  const freeM=totalInc-totalOut+decImpact;
+  S.income=totalInc;
+  S.freeMonthly=Math.max(0,freeM);
+  S.fixedOut=totalOut;
+
+  document.getElementById('fixedGrid').innerHTML=gridHtml;
+
+  // Přidej řádky rozhodnutí
+  const grid=document.getElementById('fixedGrid');
+  if(decImpact<0){
+    const row=document.createElement('div');
+    row.className='fx';
+    row.innerHTML=`<div class="fx-l">📌 Rozhodnutí (měsíčně)</div><div class="fx-v out">−${fmt(Math.abs(decImpact))}</div>`;
+    grid.appendChild(row);
+  }
+  if(onetimeHtml){
+    const wrap=document.createElement('div');
+    wrap.innerHTML=onetimeHtml;
+    Array.from(wrap.children).forEach(c=>grid.appendChild(c));
+  }
+
+  document.getElementById('bsIncome').textContent=fmt(totalInc)+' / měs.';
+  const bsFree=document.getElementById('bsFree');
+  bsFree.textContent=fmt(Math.max(0,freeM))+' / měs.';
+  bsFree.className='bs-val'+(freeM<0?' danger':freeM<5000?' warn':'');
+
+  // Upozornění pokud si nemůžou dovolit jednorázový výdaj
+  if(onetimeTotal>0&&S.capital.rezerva<onetimeTotal){
+    const hint=document.getElementById('alloc-hint');
+    hint.style.display='block';
+    hint.className='wbox';
+    hint.innerHTML=`⚠️ <strong>Nedostatek rezervy!</strong> Na tento výdaj (${fmt(onetimeTotal)}) nemáte dost v rezervě (${fmt(S.capital.rezerva)}). Musíte sáhnout do portfolia — nebo výdaj nezvolit.`;
+  }
+
+  updateAlloc();
+}
+
+function confirmPhase(){
+  const ph=PHASES[S.phase];
+  // Check required decisions
+  if(ph.decisions){
+    for(const dec of ph.decisions){
+      if(!S.decisions[dec.key]){alert(`Rozhodněte: ${dec.title}`);return;}
+    }
+  }
+  const alloc=getAllocValues();
+  if(alloc.remainPct<-2){alert('Překračuješ dostupné prostředky!');return;}
+
+  // Aplikuj flagy z rozhodnutí (flagVal) — přesně jednou při potvrzení
+  if(S.decFlags) Object.values(S.decFlags).forEach(fv=>{ if(fv) Object.assign(S.flags,fv); });
+
+  // Odečti jednorázové výdaje z rezervy — pokud nestačí, sáhni do ETF
+  let onetimeMsg=[];
+  Object.values(tempOnetime).forEach(o=>{
+    if(S.capital.rezerva>=o.cost){
+      S.capital.rezerva-=o.cost;
+      onetimeMsg.push(`${o.label}: −${fmt(o.cost)} z rezervy`);
+    } else {
+      const zRezervy=S.capital.rezerva;
+      const zPortfolia=o.cost-zRezervy;
+      S.capital.rezerva=0;
+      S.capital.etf=Math.max(0,S.capital.etf-zPortfolia);
+      onetimeMsg.push(`⚠️ ${o.label}: rezerva nestačila, ${fmt(zPortfolia)} odečteno z portfolia!`);
+    }
+  });
+
+  tempFixed={}; tempOnetime={}; S.decFlags={};
+
+  // Uložíme alokaci jako výchozí pro příští fázi
+  S.lastAlloc={rez:alloc.rez||0,etf:alloc.etf||0,dip:alloc.dip||0,dluh:alloc.dluh||0,hyp:alloc.hyp||0,joy:alloc.joy||0};
+
+  // Apply phase
+  ph.apply(alloc);
+
+  // Save history snapshot
+  S.phaseResults.push({
+    phase:S.phase+1,age:ph.age,
+    net:S.capital.rezerva+S.capital.etf+S.capital.dip+S.capital.dluhopisy+S.capital.nemovitosti-S.capital.hypDluh-S.capital.otherDluh
+  });
+
+  S.phase++;
+  if(S.phase>=PHASES.length){showResult();return;}
+  updateHeader();
+  renderPhase();
+}
+
+// ── RESULT ────────────────────────────────────────────────
+function showResult(){
+  updateHeader();
+  const port=S.capital.etf+S.capital.dip+S.capital.dluhopisy;
+  const net=S.capital.rezerva+port+S.capital.nemovitosti-S.capital.hypDluh-S.capital.otherDluh;
+
+  document.getElementById('rScore').textContent=fmt(Math.max(0,net));
+  let label='';
+  if(net>20000000)label='🏅 Finanční nezávislost na nejvyšší úrovni';
+  else if(net>12000000)label='🥇 Excelentní výsledek — pohodlný důchod zajištěn';
+  else if(net>6000000)label='✅ Skvělý základ — důchod bez kompromisů';
+  else if(net>3000000)label='👍 Dobrý výsledek — důchod s mírným omezením';
+  else if(net>1000000)label='⚠️ Skromný základ — státní důchod bude nutný';
+  else label='❌ Nedostatečné úspory — přehodnoť strategii';
+  document.getElementById('rLabel').textContent=label;
+
+  document.getElementById('rBreakdown').innerHTML=`
+    <div class="br-row"><span class="br-l">Investiční portfolio (ETF+DIP+dluh.)</span><span class="br-v" style="color:var(--gold)">${fmt(port)}</span></div>
+    <div class="br-row"><span class="br-l">Nemovitosti</span><span class="br-v" style="color:var(--blue)">${fmt(S.capital.nemovitosti)}</span></div>
+    <div class="br-row"><span class="br-l">Rezervy a hotovost</span><span class="br-v" style="color:var(--green)">${fmt(S.capital.rezerva)}</span></div>
+    <div class="br-row"><span class="br-l" style="color:var(--red)">Dluhy celkem</span><span class="br-v" style="color:var(--red)">− ${fmt(S.capital.hypDluh+S.capital.otherDluh)}</span></div>
+    <div class="br-row"><span class="br-l"><strong>Čistý majetek</strong></span><span class="br-v" style="color:var(--gold);font-size:17px"><strong>${fmt(Math.max(0,net))}</strong></span></div>
+  `;
+
+  document.getElementById('rJoy').textContent=fmt(S.joy);
+  const joyComment=S.joy>3000000?'Tomáš žil naplno — dovolené, radosti, zážitky. Kapitál není vše.':
+    S.joy>1000000?'Zdravá rovnováha — investoval, ale i žil.':'Tomáš šetřil tvrdě. Kapitál je vysoký, ale co zážitky?';
+  document.getElementById('rJoyComment').textContent=joyComment;
+
+  const kd=[];
+  if(S.decisions.bydleni)kd.push('🏠 Bydlení: '+{najem:'nájem',hypoteka:'vlastní byt',rodice:'u rodičů'}[S.decisions.bydleni]);
+  if(S.decisions.pojisteni)kd.push(S.decisions.pojisteni==='ano'?'✅ Pojistka: uzavřena':'❌ Pojistka: bez ochrany');
+  if(S.decisions.krize)kd.push('📉 Krize: '+{prodat:'prodal v panice',vydrzet:'vydržel',dokoupit:'dokoupil'}[S.decisions.krize]);
+  if(S.decisions.inv_byt)kd.push('🏘️ Inv. byt: '+{koupit_am:'koupil (am. hyp.)',koupit_hyp:'koupil (std. hyp.)',nekoupit:'nekoupil'}[S.decisions.inv_byt]);
+  if(S.decisions.hyp_splaceni)kd.push('💊 Hypotéka v 53: '+{splatit:'splatil předčasně',investovat:'protiproud (investoval)',preplatky:'přeplatky'}[S.decisions.hyp_splaceni]);
+  if(S.decisions.lifestyle)kd.push('🍾 Lifestyle: '+{disiplina:'tvrdá disciplína',trochu:'vyvážený',zivot:'žil naplno'}[S.decisions.lifestyle]);
+  document.getElementById('rDecisions').innerHTML=kd.join('<br>');
+
+  let insight='';
+  if(S.decisions.krize==='prodat')insight='⚠️ Největší ztrátu způsobil prodej ETF v krizi. Kdo vydržel, vydělal na oživení statisíce navíc.';
+  else if(!S.flags.hasPojisteni&&S.flags.healthEvent)insight='💡 Zdravotní událost bez pojistky stála drahý prodej investic. 1 600 Kč/měs. by ušetřilo mnohem víc.';
+  else if(S.decisions.hyp_splaceni==='investovat')insight='🧠 Protiproud fungoval — hypotéka za 4,8 %, ETF za 7 %. Matematika vyhrála.';
+  else insight='📊 Každé rozhodnutí má důsledky. Klíč není mít nejlepší rozhodnutí, ale mít systém a držet se ho.';
+  document.getElementById('rInsight').textContent=insight;
+
+  showScr('result');
+}
+
+function resetGame(){
+  S={team:'',phase:0,income:0,fixedOut:0,freeMonthly:0,lastAlloc:null,capital:{rezerva:0,etf:0,dip:0,dluhopisy:0,nemovitosti:0,hypDluh:0,otherDluh:0},joy:0,decisions:{},flags:{hasHyp:false,hypRate:0.055,hypBalance:0,hypYears:0,hasInvByt:false,invBytNajem:0,invBytDluh:0,hasPojisteni:false,hasAuto:false,partnerIncome:0,hasKids:false,kidsAge:0,jobLoss:false,healthEvent:false,crisisHappened:false,studentDluh:120000},phaseResults:[]};
+  tempFixed={};
+  document.getElementById('mainHdr').style.display='none';
+  document.getElementById('mainProg').style.display='none';
+  document.getElementById('teamIn').value='';
+  showScr('intro');
+}
+</script>
+</body>
+</html>
